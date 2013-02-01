@@ -1,3 +1,5 @@
+--APIs Laden
 os.loadAPI("apis/tHeat")
-write("Hi, mein Name ist "..os.getComputerLabel().."\n")
 
+tHeat.cT()
+print(os.getComputerLabel().." | "..os.getComputerID().." | Fuel: "..turtle.getFuelLevel())
