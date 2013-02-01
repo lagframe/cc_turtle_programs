@@ -1,0 +1,3 @@
+-- Neueste Version von GitHub laden
+
+shell.run("programs/github clone lagframe/cc_turtle_programs ./")
