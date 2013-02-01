@@ -1,0 +1,3 @@
+os.loadAPI("apis/tHeat")
+write("Hi, mein Name ist "..os.getComputerLabel().."\n")
+

@@ -1,0 +1,448 @@
+--[[
+	Turtle API
+	Version 1.2a
+
+	CHANGELOG:
+		Update 1.2
+			+ Clear Terminal Funktion
+		Update 1.1
+			+ Callback Funktionen implementiert
+			o NICHT ABWAERTSKOMPATIBEL
+	
+	TODO: 
+		Fehlerbehandlung, wenn gps-sat nicht verfügbar
+]]--
+
+-- Lokale Variablen
+
+-- Turtle Move Funktionen
+function moveForward(steps, callback, opAtStart)
+	if opAtStart then
+		callback()
+	end
+	if steps == "inf" then
+		while turtle.forward() do
+			if (callback) then
+				callback()
+			end
+		end
+	else 
+		local i = 0
+		repeat
+			if turtle.forward() then -- Moves the turtle
+				if (callback) then
+					callback()
+				end
+				i=i+1
+			else
+				sleep(5)
+			end
+		until i == steps
+	end
+end
+
+function moveBack(steps, callback, opAtStart)
+	if opAtStart then
+		callback()
+	end
+	if steps == "inf" then
+		while turtle.back() do
+			if (callback) then
+				callback()
+			end
+		end
+	else 
+		local i = 0
+		repeat
+			if turtle.back() then -- Moves the turtle
+				if (callback) then
+					callback()
+				end
+				i=i+1
+			else
+				sleep(5)
+			end
+		until i == steps
+	end
+end
+
+function moveUp(steps, callback, opAtStart)
+	if opAtStart then
+		callback()
+	end
+	if steps == "inf" then
+		while turtle.up() do
+			if (callback) then
+				callback()
+			end
+		end
+	else 
+		local i = 0
+		repeat
+			if turtle.up() then -- Moves the turtle
+				if (callback) then
+					callback()
+				end
+				i=i+1
+			else
+				sleep(5)
+			end
+		until i == steps
+	end
+end
+
+function moveDown(steps, callback, opAtStart)
+	if opAtStart then
+		callback()
+	end
+	if steps == "inf" then
+		while turtle.down() do
+			if (callback) then
+				callback()
+			end
+		end
+	else 
+		local i = 0
+		repeat
+			if turtle.down() then -- Moves the turtle
+				if (callback) then
+					callback()
+				end
+				i=i+1
+			else
+				sleep(5)
+			end
+		until i == steps
+	end
+end
+
+-- Turtle Dig Funktionen
+function tryDig() -- Versucht einen Block nach vorne abzubauen
+	while turtle.detect() do
+		turtle.dig()
+	end
+end
+
+function tryDigDown() -- Versucht einen Block nach unten abzubauen
+	while turtle.detectDown() do
+		turtle.digDown()
+	end
+end
+
+function tryDigUp() -- Versucht einen Block nach oben abzubauen
+	while turtle.detectUp() do
+		turtle.digUp()
+	end
+end
+
+function digForward(steps, callbackPerStep, callback)
+	if steps == "inf" then
+		tryDig()
+		while turtle.forward() do
+			tryDig()
+			if (callbackPerStep) then
+				callbackPerStep()
+			end
+		end
+	else 
+		local i = 0
+		repeat
+			if turtle.forward() then -- Moves the turtle
+				tryDig()
+				if (callbackPerStep) then
+					callbackPerStep()
+				end
+				i=i+1
+			else
+				tryDig()
+				sleep(1)
+			end
+		until i == steps
+	end
+	if (callback) then
+		callback()
+	end
+end
+
+-- Turtle Place Block Funktionen
+function tryPlace() -- Versucht einen Block nach vorne zu platzieren und wartet, wenn es nicht moeglich ist (z.B. Inventar leer)
+	if turtle.detect()==false then
+		while turtle.place()==false do
+			sleep(5)
+		end
+	end
+end
+
+function tryPlaceDown() -- Versucht einen Block nach unten zu platzieren und wartet, wenn es nicht moeglich ist (z.B. Inventar leer)
+	if turtle.detectDown()==false then
+		while turtle.placeDown()==false do
+			sleep(5)
+		end
+	end
+end
+
+function tryPlaceUp() -- Versucht einen Block nach oben zu platzieren und wartet, wenn es nicht moeglich ist (z.B. Inventar leer)
+	if turtle.detectUp()==false then
+		while turtle.placeUp()==false do
+			sleep(5)
+		end
+	end
+end
+
+-- Turtle GPS Funktionen
+function deactivateGps(pos) -- Relatives Tracking aktivieren, Default: Pos auf 0 setzen
+	curPos = pos or {0,0,0,0}
+	useGps = false
+	return true
+end
+
+function activateGps() -- Relatives Tracking deaktivieren und GPS - Pos bestimmen.
+	if checkGps() == true then
+		useGps = true
+		return true
+	else
+		return false
+	end
+end
+
+function checkGps(timeoutGPS) -- Prueft, ob GPS verfuegbar.
+	timeoutGPS = timeoutGPS or 10
+	
+	local x,y,z
+	x,y,z = nil
+	x,y,z = gps.locate(timeoutGPS)
+	if x == nil or y == nil or z == nil then
+		return false
+	else
+		return true
+	end
+end
+
+function locate(timeoutGPS) -- Fragt die GPS Koordinaten im timeoutGPS takt ab... unendlich lange.
+	timeoutGPS = timeoutGPS or 10
+	
+	local x,y,z
+	x,y,z = nil
+	rednet.open("right") -- opens the modem
+	while x == nil or y == nil or z == nil do
+		x,y,z = gps.locate(timeoutGPS) -- gets the turtles position
+	end
+	rednet.close("right") -- closes the modem
+	return x,y,z
+end
+
+function getTurtlePos() -- Gibt die Koordinaten (x, y, z) des Turtle zurueck, sowie die Blickrichtung (h)
+	local checkedDirection 
+	local ch -- sets a var for the direction the turtle is facing
+	local cx,cy,cz = locate(10) -- gets the turtles position
+	local fx,fy,fz
+	if turtle.forward() == true then -- moves the turtle forward 1 space
+		fx,fy,fz = locate(10) -- gets the turtles position
+		checkedDirection = "forward"
+		turtle.back() -- moves the turtle back to its original position
+	elseif turtle.back() == true then
+		fx,fy,fz = locate(10) -- gets the turtles position
+		checkedDirection = "back"
+		turtle.forward() -- moves the turtle back to its original position
+	else
+		return(false)
+	end
+	
+	-- Richtung bestimmen
+	-- A value of 0 means south, 1 west, 2 north, and 3 east.
+	if checkedDirection == "forward" then
+		if fx > cx then --if final X is Greater than original X  turtle is facing East
+			ch = 3 --East
+		elseif fx < cx then --if final X is Less than original X  turtle is facing West
+			ch = 1 --West
+		elseif fy < cy then --if final Z is Greater than original Z  turtle is facing South
+			ch = 0 --South
+		elseif fy > cy then --if final Z is Less than original Z  turtle is facing North
+			ch = 2 --North
+		end
+		return cx, cy, cz, ch -- returns position and heading info
+	elseif checkedDirection == "back" then
+		if fx < cx then --if final X is Greater than original X  turtle is facing East
+			ch = 3 --East
+		elseif fx > cx then --if final X is Less than original X  turtle is facing West
+			ch = 1 --West
+		elseif fy > cy then --if final Z is Greater than original Z  turtle is facing South
+			ch = 0 --South
+		elseif fy < cy then --if final Z is Less than original Z  turtle is facing North
+			ch = 2 --North
+		end
+		return cx, cy, cz, ch -- returns position and heading info
+	end
+end
+
+function goTo(pos) -- Turtle geht nach pos (nur auf x und y - Achse), braucht table {x,y,z,h}
+	local cx, cy, cz, ch = getTurtlePos()
+	
+	if cx > pos[1] then -- If Current X is Greater than Stored X move West = 1 x goes minus
+		local steps = cx - pos[1] + 1 -- calculates how many spaces to move
+		
+		-- this if elseif  get the turtles current heading (way its facing) and turns it to the heading needed
+		if ch == 1 then   -- west
+		  ch = 1
+		elseif ch == 2 then  -- north
+		  turtle.turnLeft()
+		  ch = 1
+		elseif ch == 3 then  -- east 
+		  turtle.turnLeft()
+		  turtle.turnLeft()
+		  ch = 1
+		elseif ch == 0 then  -- south
+		  turtle.turnRight()
+		  ch = 1
+		end
+		
+		local i = 1
+		repeat
+		  turtle.forward() -- Moves the turtle
+		  i=i+1
+		until i == steps
+	end
+	
+	if cx < pos[1] then -- If Current X is Less than Stored X move East     = 3 x goes plus
+		local steps = pos[1] - cx + 1
+		
+		if ch == 1 then   -- west
+		  turtle.turnLeft()
+		  turtle.turnLeft()
+		  ch = 3
+		elseif ch == 2 then  -- north
+		  turtle.turnRight()
+		  ch = 3
+		elseif ch == 3 then  -- east
+		  ch = 3
+		elseif ch == 0 then  -- south
+		  turtle.turnLeft()
+		  ch = 3
+		end
+		
+		local i = 1
+		repeat
+		  turtle.forward()
+		  i=i+1
+		until i == steps
+	end
+	
+	if cy > pos[2] then -- If Current Y is Greater than Stored Y move South = 0  Y goes minus
+		local steps = cy - pos[2] + 1
+		
+		if ch == 1 then   -- west
+		  turtle.turnLeft()
+		  ch = 0
+		elseif ch == 2 then  -- north
+		  turtle.turnLeft()
+		  turtle.turnLeft()
+		  ch = 0
+		elseif ch == 3 then  -- east
+		  turtle.turnRight()
+		  ch = 0
+		elseif ch == 0 then  -- south
+		  ch = 0
+		end
+		
+		local i = 1
+		repeat
+		  turtle.forward()
+		  i = i + 1
+		until i == steps
+	end
+	
+	if cy < pos[2] then -- If Current Y is smaller than Stored Y move North = 2  Y goes plus
+		local steps = pos[2] - cy + 1
+		
+		if ch == 1 then   -- west
+		  turtle.turnRight()
+		  ch = 2
+		elseif ch == 2 then  -- north
+		  ch = 2
+		elseif ch == 3 then  -- east
+		  turtle.turnLeft()
+		  ch = 2
+		elseif ch == 0 then  -- south
+		  turtle.turnLeft()
+		  turtle.turnLeft()
+		  ch = 2
+		end
+		
+		local i = 1
+		repeat
+		  turtle.forward()
+		  i = i + 1
+		until i == steps
+	end
+	
+	if pos[4] == 0 then -- Blickrichtung korrigieren -> Süd
+		if ch == 1 then   -- west
+		  turtle.turnLeft()
+		  ch = 0
+		elseif ch == 2 then  -- north
+		  turtle.turnLeft()
+		  turtle.turnLeft()
+		  ch = 0
+		elseif ch == 3 then  -- east
+		  turtle.turnRight()
+		  ch = 0
+		elseif ch == 0 then  -- south
+		  ch = 0
+		end
+	elseif pos[4] == 1 then -- Blickrichtung korrigieren -> West
+		if ch == 1 then   -- west
+		  ch = 1
+		elseif ch == 2 then  -- north
+		  turtle.turnLeft()
+		  ch = 1
+		elseif ch == 3 then  -- east 
+		  turtle.turnLeft()
+		  turtle.turnLeft()
+		  ch = 1
+		elseif ch == 0 then  -- south
+		  turtle.turnRight()
+		  ch = 1
+		end
+	elseif pos[4] == 2 then -- Blickrichtung korrigieren -> Nord
+		if ch == 1 then   -- west
+		  turtle.turnRight()
+		  ch = 2
+		elseif ch == 2 then  -- north
+		  ch = 2
+		elseif ch == 3 then  -- east
+		  turtle.turnLeft()
+		  ch = 2
+		elseif ch == 0 then  -- south
+		  turtle.turnLeft()
+		  turtle.turnLeft()
+		  ch = 2
+		end
+	elseif pos[4] == 3 then -- Blickrichtung korrigieren -> Ost
+		if ch == 1 then   -- west
+		  turtle.turnLeft()
+		  turtle.turnLeft()
+		  ch = 3
+		elseif ch == 2 then  -- north
+		  turtle.turnRight()
+		  ch = 3
+		elseif ch == 3 then  -- east
+		  ch = 3
+		elseif ch == 0 then  -- south
+		  turtle.turnLeft()
+		  ch = 3
+		end
+	end
+end
+
+-- Misc Funktionen
+function dropAll() -- dropt das gesamte Inventar
+	for inventory=1, 9, 1 do
+		turtle.select(inventory)
+		turtle.drop()
+	end
+end
+
+function cT() -- Clear Terminal und Cursor auf Anfang
+	term.clear()
+	term.setCursorPos(1,1)
+end

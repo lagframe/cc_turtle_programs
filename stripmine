@@ -1,0 +1,103 @@
+version = 1.2
+
+--VARIABLEN
+--Item Slots
+treibstoff = 16
+fackel = 15
+lSchacht = 18
+bReturnHome = false
+
+--FUNKTIONEN
+function digSegment(segment)
+	plaziereFackel = segment % 2
+	tHeat.digForward(3, tHeat.tryDigDown)
+	if plaziereFackel == 1 then
+		turtle.select(fackel)
+		if not turtle.placeDown() then
+			print("W("..segment.."): Konnte keine Fackel platzieren")
+		end
+	end
+	turtle.turnLeft()
+	tHeat.digForward(4)
+	turtle.turnLeft()
+	turtle.turnLeft()
+	tHeat.digForward(4)
+	tHeat.digForward(4)
+	turtle.turnLeft()
+	turtle.turnLeft()
+	tHeat.digForward(4)
+	turtle.turnRight()
+	tHeat.digForward(1, tHeat.tryDigDown)
+end
+--MAIN
+tHeat.cT()
+
+print("Spähminenschacht Version "..version)
+print("===============================")
+print("")
+print("Segmente: "..lSchacht)
+print("")
+print("Fackeln min (Slot "..fackel.."): " .. math.ceil(lSchacht / 2))
+print("")
+write("Bereit (j/n): ")
+
+if read() == "j" then
+	print("")
+	while turtle.getItemCount(fackel) < math.ceil(lSchacht / 2) do
+		turtle.select(fackel)
+		print("WARUNG: Nicht genug Fackeln in Slot "..fackel)
+		write("Nachgefuellt (min ".. math.ceil(lSchacht / 2)..")? (ENTER):")
+		read()
+		print("")
+	end
+  	
+	requiredFuel = lSchacht * 25
+	
+	write("Soll ich am Ende zum Ausgangspunkt zurueck kehren (j/n): ")
+	if read() == "j" then
+		bReturnHome = true
+		requiredFuel = requiredFuel + (lSchacht * 5)
+	end
+	
+	print("")
+	
+	while turtle.getFuelLevel() < requiredFuel do
+		print("WARUNG: Nicht genug Treibstoff!")
+		print("Treibstoff lvl: "..turtle.getFuelLevel().."/"..requiredFuel)
+		write("Bitte Treibstoff (z.B. Kohle) in Slot "..treibstoff.." legen (ENTER):")
+		read()
+		print("")
+		turtle.select(treibstoff)
+		if turtle.refuel() then
+			print("Treibstoff lvl: "..turtle.getFuelLevel().."/"..requiredFuel)
+		else
+			print("FEHLER: Kein/Inkompatibler Treibstoff!")
+		end
+		print("")
+	end
+	
+	tHeat.cT()
+	print("================")
+	print("Hebe Schacht aus...")
+	print("================")
+	
+	tHeat.moveUp(1)
+	tHeat.digForward(1, tHeat.tryDigDown)
+	
+	for i = 1, lSchacht, 1 do		
+		digSegment(i)
+	end
+
+	if bReturnHome then
+		turtle.turnLeft()
+		turtle.turnLeft()
+		tHeat.digForward((4*lSchacht))
+	end
+	
+	tHeat.tryDigDown()
+	tHeat.moveDown(1)
+	
+	print("================")
+	print("Fertig!")
+	print("================")
+end

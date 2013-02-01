@@ -1,0 +1,32 @@
+function checkPlace()
+  while turtle.place()==false do
+	if selectNextSlotWithItem() == false then
+		sleep(5)
+	end
+  end
+end
+
+function selectNextSlotWithItem()
+	local i = 1
+	while i <= 16 do
+		if turtle.getItemCount(i) > 0 then
+			turtle.select(i)
+			return true
+		end
+		i = i + 1
+	end
+	return false
+end
+
+turns=0
+while turns<4 do
+  while turtle.back()==true do
+    checkPlace()
+    turns=0
+  end
+  turtle.turnRight()
+  turns=turns+1
+end
+if turtle.up()==true then
+  turtle.placeDown()
+end
