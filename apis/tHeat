@@ -438,7 +438,7 @@ end
 function dropAll(save_last) -- dropt das gesamte Inventar
 	save_last = save_last or 0
 	slots = 16 - save_last
-	for inventory=1, 16, 1 do
+	for inventory=1, slots, 1 do
 		turtle.select(inventory)
 		turtle.drop()
 	end
