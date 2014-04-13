@@ -436,7 +436,7 @@ end
 
 -- Misc Funktionen
 function dropAll() -- dropt das gesamte Inventar
-	for inventory=1, 9, 1 do
+	for inventory=1, 16, 1 do
 		turtle.select(inventory)
 		turtle.drop()
 	end
