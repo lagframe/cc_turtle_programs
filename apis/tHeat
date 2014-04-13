@@ -435,12 +435,15 @@ function goTo(pos) -- Turtle geht nach pos (nur auf x und y - Achse), braucht ta
 end
 
 -- Misc Funktionen
-function dropAll(save_last) -- dropt das gesamte Inventar
-	save_last = save_last or 0
-	slots = 16 - save_last
+function dropAll(save) -- dropt das gesamte Inventar
+	save = save or {}
+	slots = 16
+
 	for inventory=1, slots, 1 do
-		turtle.select(inventory)
-		turtle.drop()
+		if save[inventory] == nil then
+			turtle.select(inventory)
+			turtle.drop()
+		end
 	end
 end
 
