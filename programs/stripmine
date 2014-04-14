@@ -2,8 +2,8 @@ version = 1.2
 
 --VARIABLEN
 --Item Slots
-treibstoff = 16
-fackel = 15
+treibstoff = 15
+fackel = 16
 lSchacht = 18
 bReturnHome = false
 
