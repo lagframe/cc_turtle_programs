@@ -434,19 +434,25 @@ function goTo(pos) -- Turtle geht nach pos (nur auf x und y - Achse), braucht ta
 	end
 end
 
--- Misc Funktionen
-function dropAll(save) -- dropt das gesamte Inventar
+-- Inventory Funktionen
+function dropAll(save) -- dropt das gesamte Inventar, bis auf die in save definierte slots uebergabe in folgendem Format: {slot15 = 1, slot16 = 64}
 	save = save or {}
 	slots = 16
 
 	for inventory=1, slots, 1 do
-		if save[inventory] == nil then
+		local current = turtle.getItemCount(inventory)
+		if current > 0 then
 			turtle.select(inventory)
-			turtle.drop()
+			if save['slot'..inventory] ~= nil then
+				turtle.drop(current - save['slot'..inventory])
+			else 
+				turtle.drop()
+			end
 		end
 	end
 end
 
+-- Misc Funktionen
 function cT() -- Clear Terminal und Cursor auf Anfang
 	term.clear()
 	term.setCursorPos(1,1)
