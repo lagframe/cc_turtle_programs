@@ -1,0 +1,126 @@
+function dig_segment(segment, inventory)
+	local plaziereFackel = segment % 2
+	tHeat.digForward(3, tHeat.tryDigDown)
+
+	if plaziereFackel == 1 then
+		turtle.select(inventory["fackel"][1])
+
+		if not turtle.placeDown() then
+			print("W("..segment.."): Konnte keine Fackel platzieren")
+		end
+	end
+
+	turtle.turnLeft()
+	tHeat.digForward(4)
+	turtle.turnLeft()
+	turtle.turnLeft()
+	tHeat.digForward(4)
+	tHeat.digForward(4)
+	turtle.turnLeft()
+	turtle.turnLeft()
+	tHeat.digForward(4)
+	turtle.turnRight()
+	tHeat.digForward(1, tHeat.tryDigDown)
+end
+
+function dig_branch(counter, lBranch, inventory, bReturnHome, direction) 
+	if direction == 1 then
+		turtle.turnRight()
+	else
+		turtle.turnLeft()
+	end
+
+	tHeat.moveUp(1)
+	tHeat.digForward(2, tHeat.tryDigDown)
+
+	for i = 1, lBranch, 1 do		
+		dig_segment(i, inventory)
+	end
+
+	if bReturnHome then
+		turtle.turnLeft()
+		turtle.turnLeft()
+		tHeat.digForward((4*lBranch))
+	end
+		
+	tHeat.digForward(1, tHeat.tryDigDown)
+	tHeat.moveDown(1)
+
+	-- Kiste abstellen und Inventar leeren
+	if direction == 1 then
+		turtle.turnLeft()
+	else
+		turtle.turnRight()
+	end
+	
+	turtle.select(inventory["chest"][1])
+	if not turtle.place() and direction ~= 2 then
+		print("Branch("..counter.."): Konnte keine Kiste platzieren")
+	else
+		tHeat.dropInventory(inventory)
+	end
+
+	if direction == 1 then
+		turtle.turnRight()
+	else
+		turtle.turnLeft()
+	end
+	tHeat.digForward(1)
+
+	if direction == 1 then
+		turtle.turnRight()
+	else
+		turtle.turnLeft()
+	end
+end
+
+function dig_main_branch(counter, inventory, bReturnHome) 
+	for i=0, 12, 1 do
+		tHeat.tryDig()
+		tHeat.moveForward(1)
+		turtle.turnLeft()
+		tHeat.tryDig()
+		tHeat.tryDigUp()
+		tHeat.moveUp(1)
+		tHeat.tryDig()
+		turtle.turnRight()
+		turtle.turnRight()
+		tHeat.tryDig()
+		tHeat.moveDown(1)
+		tHeat.tryDig()
+		turtle.turnLeft()
+
+		if i == 5 or i == 12 then
+			turtle.turnRight()
+			turtle.turnRight()
+
+			if i == 12 then -- Kiste abstellen und Inventar leeren
+				tHeat.moveForward(1)
+				turtle.turnRight()
+				turtle.select(inventory["chest"][1])
+
+				if not turtle.place() then
+					print("MainBranch("..counter.."): Konnte keine Kiste platzieren")
+				else
+					tHeat.dropInventory(inventory)
+				end
+
+				turtle.turnLeft()
+				tHeat.moveBack(1)
+			end
+
+			turtle.select(inventory["fackel"][1])
+
+			if not turtle.place() then
+				print("MainBranch("..counter.."): Konnte keine Fackel platzieren")
+			end
+
+			turtle.turnRight()
+			turtle.turnRight()
+		end
+	end
+end
+
+function version()
+	print("Version")
+end

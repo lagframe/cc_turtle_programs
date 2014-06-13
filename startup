@@ -1,6 +1,8 @@
 --APIs Laden
 os.loadAPI("apis/tHeat")
-os.loadAPI("apis/minig_paterns")
+os.loadAPI("apis/mining")
 
 tHeat.cT()
 print(os.getComputerLabel().." | "..os.getComputerID().." | Fuel: "..turtle.getFuelLevel())
+
+shell.run("programs/branchmine")

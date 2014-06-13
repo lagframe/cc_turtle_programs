@@ -1,0 +1,106 @@
+version = 1.2
+
+--VARIABLEN
+--Item Slots
+local inventory = {
+	treibstoff = {14, 0},
+	chest = {15, 64},
+	fackel = {16, 64}
+}
+
+lSchacht = 10 --Laenge eines Arms
+laenge_mine = 3
+branches = laenge_mine * 2
+bReturnHome = false
+
+-- benoetigte Fackeln
+required_torches = math.ceil(lSchacht / 2) * branches + laenge_mine * 2
+
+-- benoetigte Kisten
+required_chests = laenge_mine * 2
+
+--FUNKTIONEN
+
+--MAIN
+tHeat.cT()
+
+print("Branchmine Version "..version)
+print("===============================")
+print("")
+print("Laenge der Mine: "..laenge_mine)
+print("")
+print("Fackeln min (Slot "..inventory["fackel"][1].."): " .. required_torches)
+print("Kisten min (Slot "..inventory["chest"][1].."): " .. required_chests)
+print("")
+write("Bereit (j/n): ")
+
+if read() == "j" then
+	print("")
+	while turtle.getItemCount(inventory["fackel"][1]) < required_torches do
+		turtle.select(inventory["fackel"][1])
+		print("WARUNG: Nicht genug Fackeln in Slot "..inventory["fackel"][1])
+		write("Nachgefuellt (min ".. required_torches..")? (ENTER):")
+		read()
+		print("")
+	end
+
+	while turtle.getItemCount(inventory["chest"][1]) < required_chests do
+		turtle.select(inventory["chest"][1])
+		print("WARUNG: Nicht genug Kisten in Slot "..inventory["chest"][1])
+		write("Nachgefuellt (min ".. required_chests..")? (ENTER):")
+		read()
+		print("")
+	end
+  	
+  	-- ein main_branch benoetigt 39
+	requiredFuel = (((lSchacht * 25) + 10) * branches) + (laenge_mine * 39)
+	
+	write("Soll ich am Ende zum Ausgangspunkt zurueck kehren (j/n): ")
+	if read() == "j" then
+		bReturnHome = true
+		requiredFuel = requiredFuel + (laenge_mine * 13)
+	end
+	
+	print("")
+	
+	while turtle.getFuelLevel() < requiredFuel do
+		print("WARUNG: Nicht genug Treibstoff!")
+		print("Treibstoff lvl: "..turtle.getFuelLevel().."/"..requiredFuel)
+		write("Bitte Treibstoff (z.B. Kohle) in Slot "..inventory["treibstoff"][1].." legen (ENTER):")
+		read()
+		print("")
+		turtle.select(inventory["treibstoff"][1])
+
+		if turtle.refuel() then
+			print("Treibstoff lvl: "..turtle.getFuelLevel().."/"..requiredFuel)
+		else
+			print("FEHLER: Kein/Inkompatibler Treibstoff!")
+		end
+		
+		print("")
+	end
+	
+	tHeat.cT()
+	print("================")
+	print("Hebe Schacht aus...")
+	print("================")
+
+	for i=1, laenge_mine, 1 do
+		mining.dig_main_branch(1, inventory)
+
+		for direction=1, 2, 1 do
+			mining.dig_branch(i, lSchacht, inventory, true, direction)
+		end
+	end
+
+	if bReturnHome then
+		tHeat.moveUp(1)
+		turtle.turnLeft()
+		turtle.turnLeft()
+		tHeat.digForward((13*laenge_mine))
+	end
+
+	print("================")
+	print("Fertig!")
+	print("================")
+end

@@ -132,6 +132,7 @@ end
 function tryDigUp() -- Versucht einen Block nach oben abzubauen
 	while turtle.detectUp() do
 		turtle.digUp()
+		sleep(.5)
 	end
 end
 
@@ -440,16 +441,27 @@ function dropAll(save) -- dropt das gesamte Inventar, bis auf die in save defini
 	slots = 16
 
 	for inventory=1, slots, 1 do
-		local current = turtle.getItemCount(inventory)
-		if current > 0 then
+		local drop_count = turtle.getItemCount(inventory)
+
+		if save['slot'..inventory] ~= nil then
+			drop_count = drop_count - save['slot'..inventory]
+		end
+
+		if drop_count > 0 then
 			turtle.select(inventory)
-			if save['slot'..inventory] ~= nil then
-				turtle.drop(current - save['slot'..inventory])
-			else 
-				turtle.drop()
-			end
+			turtle.drop(drop_count)
 		end
 	end
+end
+
+function dropInventory (inventory)
+	save = {}
+
+	for key, value in pairs(inventory) do
+		save["slot"..value[1]] = value[2] 
+	end
+
+	tHeat.dropAll(save)
 end
 
 -- Misc Funktionen
